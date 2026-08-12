@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+_etabs_typelib.py
+_sig_dump.txt
+.ruff_cache/
