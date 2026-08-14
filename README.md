@@ -132,3 +132,23 @@ check_model                         # the audit
 ```
 
 Then fix in place, `run_analysis`, and `check_model` again.
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or supported by Computers
+and Structures, Inc. (CSI). It drives a licensed ETABS installation on your
+own machine through CSI's published Open API; it contains no CSI software or
+type libraries. ETABS is a trademark of Computers and Structures, Inc.
+
+This software can modify structural analysis models, including operations
+that ETABS applies through its interactive database import, which deletes
+items absent from a submitted table. Safeguards are built in (definitions-
+table denylist, unlock-before-edit, auto-row filtering, read-back
+verification), but you are responsible for your models: keep backups, verify
+results, and treat every write as an engineering action. Use at your own
+risk. Nothing produced by this tool is a substitute for review by a
+qualified structural engineer.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
