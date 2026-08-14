@@ -862,11 +862,24 @@ def _edit_table_rows(table_key: str, edits: dict[str, str], match: dict[str, str
     (old, new)}), ...]. Raises if ApplyEditedTables reports errors OTHER than
     the benign 'default value assumed' kind, which the caller must check for
     by reading the table back.
+
+    Two hard-won rules are enforced here (2026-08-13 incident):
+      1. The model is UNLOCKED before the read. Editing a definitions table
+         while analysis results exist makes the display table include
+         auto-generated child rows (e.g. 'EQ X(1/3)'), and applying on a
+         locked model can silently no-op.
+      2. Rows with IsAuto == 'Yes' are NEVER submitted. They are generated
+         artifacts, not definitions; importing them once converted them into
+         real load patterns and corrupted the pattern set.
     """
     sap = _sap()
+    sap.SetModelIsLocked(False)
     rows = _get_table(table_key)
     if not rows:
         raise RuntimeError(f"{table_key!r} read back empty.")
+    rows = [r for r in rows if r.get("IsAuto") != "Yes"]
+    if not rows:
+        raise RuntimeError(f"{table_key!r} contains only auto-generated rows.")
     fields = list(rows[0].keys())
     for f in list(edits) + list(match):
         if f not in fields:
@@ -1069,9 +1082,14 @@ def set_table_value(
             "genuinely intend the submitted rows to become the complete set, "
             "pass i_accept_unlisted_rows_are_deleted=True."
         )
+    # Unlock first and never submit auto-generated rows -- see _edit_table_rows.
+    sap.SetModelIsLocked(False)
     rows = _get_table(table_key)
     if not rows:
         raise RuntimeError(f"{table_key!r} read back empty.")
+    rows = [r for r in rows if r.get("IsAuto") != "Yes"]
+    if not rows:
+        raise RuntimeError(f"{table_key!r} contains only auto-generated rows.")
     fields = list(rows[0].keys())
     if field not in fields:
         raise ValueError(f"Field {field!r} not in {table_key!r}. Available: {sorted(fields)}")
